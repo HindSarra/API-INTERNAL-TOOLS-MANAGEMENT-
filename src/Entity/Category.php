@@ -1,4 +1,6 @@
 <?php
+//Représente une catégorie de tools.
+//Initialisation automatique de tools et createdAt dans le constructeur
 
 namespace App\Entity;
 
