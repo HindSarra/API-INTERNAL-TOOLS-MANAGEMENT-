@@ -1,32 +1,37 @@
 <?php
-//Représente une catégorie de tools.
-//Initialisation automatique de tools et createdAt dans le constructeur
-
 namespace App\Entity;
 
 use App\Repository\CategoryRepository;
-
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
-
 class Category
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private ?int $id = null;
+
+    #[ORM\Column(type: "string", length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: "text", nullable: true)]
     private ?string $description = null;
+
+    #[ORM\Column(type: "string", length: 7, nullable: true)]
     private ?string $colorHex = null;
+
+    #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $createdAt;
+
+    #[ORM\OneToMany(mappedBy: "category", targetEntity: Tool::class, cascade: ["persist", "remove"])]
     private Collection $tools;
 
     public function __construct()
     {
-        // On initialise la collection d'outils
         $this->tools = new ArrayCollection();
-
-        // On initialise la date de création à maintenant
         $this->createdAt = new \DateTime();
     }
 
@@ -64,13 +69,13 @@ class Category
         return $this->colorHex;
     }
 
-    public function setColorHex(string $colorHex): static
+    public function setColorHex(?string $colorHex): static
     {
         $this->colorHex = $colorHex;
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -80,19 +85,20 @@ class Category
         return $this->tools;
     }
 
-    // ------------------ Méthodes pour gérer la collection ------------------
-
     public function addTool($tool): static
     {
         if (!$this->tools->contains($tool)) {
             $this->tools->add($tool);
+            $tool->setCategory($this); // Relie l’outil à cette catégorie
         }
         return $this;
     }
 
     public function removeTool($tool): static
     {
-        $this->tools->removeElement($tool);
+        if ($this->tools->removeElement($tool)) {
+            $tool->setCategory(null);
+        }
         return $this;
     }
 }
